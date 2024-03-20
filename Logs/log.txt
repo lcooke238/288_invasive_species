@@ -1,1 +1,7 @@
 Initialized log.
+Finished grabbing data.
+Finished validating data.
+Finished preprocessing data.
+Finished consolidating data.
+Finished predicting trap locations.
+Finished predicting, closing log.
