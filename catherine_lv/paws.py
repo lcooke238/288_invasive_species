@@ -265,3 +265,15 @@ print("Timestamps: ", timestamps)
 iware = iWare("dt", 5)
 train_x, test_x, train_y, test_y, train_effort, test_effort = iware.train_test_split_by_year(features, labels, effort, timestamps, 10)
 iware.train_iware(train_x, train_y, train_effort)
+
+
+# dataframe - add whether or not a trap was placed there 
+# run decision tree on dataframe where time is < n - 1 to predict whether a trap would catch something if there was a trap there 
+# place traps there 
+
+# generating data 
+# initialize random predators without traps and simulate distribution of predators 
+# place random traps and use a variant of LV to generate timestamp 
+# place traps at most dense locations 
+# continute until we have 1000 timesteps 
+
