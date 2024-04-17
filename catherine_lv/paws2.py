@@ -7,11 +7,6 @@ import time
 import matplotlib.pyplot as plt 
 
 RANDOM_SEED = None 
-N_JOBS = 1
-MAX_SAMPLES = 0.8 
-MAX_FEATURES = 0.5 
-VERBOSE = 0
-NUM_ESTIMATORS = 32
 POSITIVE_LABEL = 1
 
 # np_array is (num_trials, timestamps, grid_width, grid_height) array    
