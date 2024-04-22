@@ -146,3 +146,6 @@ print(evaluate_accuracy(traps_rand, test_y))
 # place traps at most dense locations 
 # continute until we have 1000 timesteps 
 
+# some sort of environment 
+# reward is defined by predator density 
+# 

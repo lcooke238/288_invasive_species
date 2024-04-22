@@ -26,11 +26,11 @@ def spatial_dynamics(t, y, n, m):
         D - diffusion constant
         R - fundamental growth rate
         K - carrying capacity
-        A - competition coefficient (how big of an impact one group's activites have on the competiting group)
+        A - competition coefficient (how big of an impact one group's activites have on the competing group)
         G - decay constant
     """
     delta = 1
-    # OK, so because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
+    # Because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
     # To access what would be [i, j, k], we would use 2 * (n * i + j) + k.
     out = np.zeros((2 * n * m))
@@ -62,9 +62,7 @@ def spatial_dynamics(t, y, n, m):
     pts_per_sec: number of points per second. default 40
     save_loc: where to save created files
 '''
-def generate(num_traj=200,len_traj=50, pts_per_sec=100, save_loc='../Data/val.npy', prey_range=(1, 5), predator_range=(1, 3)):
-    n = 25
-    m = 25
+def generate(num_traj=200,len_traj=50, pts_per_sec=100, save_loc='../Data/val.npy', prey_range=(1, 5), predator_range=(1, 3), m=25, n=25):
     dataset = np.zeros((num_traj, n * m * 2, len_traj * pts_per_sec))  # That will store each simulation
     t_span = [0, len_traj]
     t_eval = np.linspace(0, len_traj, len_traj * pts_per_sec)  # Time vector
@@ -94,6 +92,11 @@ def generate(num_traj=200,len_traj=50, pts_per_sec=100, save_loc='../Data/val.np
     np.save(save_loc, sol.y)
     return sol.y
 
+"""
+sol = generate(num_traj=1, len_traj=1, pts_per_sec=1, m=5, n=5)
+print("hello")
+print(sol.shape)
+"""
 
 def plot_predator_locations(grid, timestep):
     #Get the min and max of all your data
@@ -251,5 +254,7 @@ def generate_traps(init_data_loc='../Data/val.npy', num_traps=20, num_traj=200, 
     print(master_sol[:,100:].shape)
     np.save(save_loc, master_sol[:,100:])
 
+sol = generate()
+print(sol.shape)
 
 
