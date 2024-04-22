@@ -116,7 +116,7 @@ def evaluate_accuracy(y_pred, y):
 
 density, traps = generate_data(20, 50, 5, 5)
 df = create_dataframe(density, traps)
-print(df)
+# print(df)
 features, labels, timestamps = setup_data(df)
 print("Features: ", features)
 print("Labels: ", labels)
@@ -125,8 +125,14 @@ iware = iWare("dt")
 train_x, test_x, train_y, test_y = iware.train_test_split_by_year(features, labels, timestamps, 10)
 iware.train_iware(train_x, train_y)
 probs, predictions = iware.predict(test_x)
-print(probs, predictions)
+print(predictions.shape)
+# print(probs, predictions)
 print(evaluate_accuracy(predictions, test_y))
+
+# evaluate accuracy for random placement
+traps_rand = np.random.binomial(1, 1/2, (500))
+print(evaluate_accuracy(traps_rand, test_y))
+
 
 
 
