@@ -137,6 +137,7 @@ def spatial_dynamics_traps(t, y, n, m):
     A = np.array([1.5, 0])
     G = np.zeros(2)
     delta = 1
+    
     # OK, so because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
     # To access what would be [i, j, k], we would use 2 * (n * i + j) + k.
