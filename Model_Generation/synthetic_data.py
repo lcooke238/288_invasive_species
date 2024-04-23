@@ -14,13 +14,6 @@ BETA = 4 / 3
 GAMMA = 1
 DELTA = 1
 
-# Spatial Lotka Volterra Model Parameters
-D = np.array([0.2, 0.2])
-R = np.array([0.5, 0.5])
-K = np.array([10, 10])
-A = np.array([1.5, 1.5])
-G = np.zeros(2)
-
 def spatial_dynamics(t, y, n, m):
     """Spatial Lotka Volterra Model as defined in BRANTINGHAM's OG paper
         D - diffusion constant
@@ -29,6 +22,12 @@ def spatial_dynamics(t, y, n, m):
         A - competition coefficient (how big of an impact one group's activites have on the competing group)
         G - decay constant
     """
+    # Spatial Lotka Volterra Model Parameters
+    D = np.array([0.2, 0.2])
+    R = np.array([0.5, 0.5])
+    K = np.array([10, 10])
+    A = np.array([1.5, 1.5])
+    G = np.zeros(2)
     delta = 1
     # Because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
@@ -113,22 +112,15 @@ def plot_predator_locations(grid, timestep):
 
 
 # Function to plot predator locations at a specified timestep
-def plot_predator_locations_at_timestep(file_loc, timestep):
+def plot_predator_locations_at_timestep(file_loc, timestep,last_dim=5000):
     dataset = np.load(file_loc)
-    data = dataset.reshape((25, 25, 2, 5000))
+    data = dataset.reshape((25, 25, 2, last_dim))
     plot_predator_locations(data, timestep * 100)
 
 
 # Define the maximum timestep based on the dataset
 max_timestep = 49
 
-
-# Spatial Lotka Volterra Model Parameters traps
-D = np.array([0.2, 0.001])
-R = np.array([0.5, 0])
-K = np.array([10, 10])
-A = np.array([1.5, 0])
-G = np.zeros(2)
 
 def spatial_dynamics_traps(t, y, n, m):
     """Spatial Lotka Volterra Model as defined in BRANTINGHAM's OG paper
@@ -138,6 +130,12 @@ def spatial_dynamics_traps(t, y, n, m):
         A - competition coefficient (how big of an impact one group's activites have on the competiting group)
         G - decay constant
     """
+    # Spatial Lotka Volterra Model Parameters traps
+    D = np.array([0.2, 0.001])
+    R = np.array([0.5, 0])
+    K = np.array([10, 10])
+    A = np.array([1.5, 0])
+    G = np.zeros(2)
     delta = 1
     # OK, so because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
@@ -254,7 +252,6 @@ def generate_traps(init_data_loc='../Data/val.npy', num_traps=20, num_traj=200, 
     print(master_sol[:,100:].shape)
     np.save(save_loc, master_sol[:,100:])
 
-sol = generate()
-print(sol.shape)
+
 
 
