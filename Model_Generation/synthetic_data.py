@@ -137,6 +137,7 @@ def spatial_dynamics_traps(t, y, n, m):
     A = np.array([1.5, 0])
     G = np.zeros(2)
     delta = 1
+    
     # OK, so because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
     # To access what would be [i, j, k], we would use 2 * (n * i + j) + k.
@@ -169,10 +170,8 @@ def spatial_dynamics_traps(t, y, n, m):
     pts_per_sec: number of points per second. default 40
     save_loc: where to save created files
 '''
-def generate_traps(init_data_loc='../Data/val.npy', num_traps=20, num_traj=200, num_replacements=10, len_traj=50, pts_per_sec=100, save_loc='../Data/val_traps.npy', prey_range=(1, 5), predator_range=(1, 3)):
+def generate_traps(init_data_loc='../Data/val.npy', num_traps=20, num_traj=200, num_replacements=10, len_traj=50, pts_per_sec=100, save_loc='../Data/val_traps.npy', prey_range=(1, 5), predator_range=(1, 3), m=25, n=25):
     # initialization stuff
-    n = 25
-    m = 25
     replacement_window = int(len_traj/num_replacements)
     dataset = np.zeros((num_traj, n * m * 2, len_traj * pts_per_sec))  # That will store each simulation
     t_span = [0, replacement_window]

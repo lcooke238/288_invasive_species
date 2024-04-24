@@ -18,9 +18,10 @@ N = 20
 Q_TABLE = defaultdict(float)
 DONE = False 
 
+
 def LV(densities, traps): 
     # this function should return the density of the predator given that the initial density of the predator was densities and we placed traps 
-    
+
 def next_state(state, action): 
     traps, prev = state[0], state[1]
     row, col = action 
@@ -62,3 +63,4 @@ def reset():
     self.predator_density = data_init[:, :, 1, :]
     traps = np.zeros((m, n))
     return (self.predator_density, traps)
+
