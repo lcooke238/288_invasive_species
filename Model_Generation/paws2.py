@@ -73,6 +73,11 @@ def data_generation(file1, file2):
 # -------------------------- CREATE DATAFRAME -----------------------------
 # np_array is (num_trials, timestamps, grid_width, grid_height) array    
 # resulting X should be a dataframe of location, density, timestamp
+
+# massive dataframe M, N, timesteps
+# preds, traps, labels, patrol effort  => n timesteps 
+# probabilities 
+
 def create_dataframe(preds, traps):
     num_parks, M, N, timesteps = preds.shape 
     data_dict = {"Timestamps": [], "Label": [], "X": [], "Y": [], "Density": [], "Trap Effort": []}
@@ -340,7 +345,7 @@ def evaluate_results(test_y, predict_test_pos_probs):
 def run(): 
     file1 = "/Users/catherinecui/288_invasive_species/Data/paws_preds.npy"
     file2 = "/Users/catherinecui/288_invasive_species/Data/paws_traps.npy"
-    data_generation(file1, file2) 
+    # data_generation(file1, file2) 
 
     # shape is (M, N, NUM_TIMESTEPS)
     preds1, traps1 = np.load(file1), np.load(file2)
