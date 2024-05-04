@@ -123,9 +123,10 @@ def create_dataframe(preds, traps):
             df_dict["Density"].append(density)
             df_dict["Trap Effort"].append(trap_effort)
             df_dict["Previous Success"].append(prev_success)
-    # uh, scale this, maybe? 
+    # normalization
     arr = np.array(df_dict["Previous Success"])
     df_dict["Previous Success"] = (arr - np.mean(arr)) / np.std(arr)
+
     return pd.DataFrame(df_dict)
 
 def setup_data(df): 
@@ -373,7 +374,7 @@ def evaluate_results(test_y, predict_test_pos_probs):
 
     return '\n'.join(output)
 
-def discretization(effort_increments=11): 
+def discretization(iware, effort_increments=11): 
     effortx = {}
     data = {}
     effort_increments = 11
@@ -386,19 +387,3 @@ def discretization(effort_increments=11):
             data[i*25+j] = iware.predict(temp_x,temp_y,effortx[i*25+j])
     return effortx, data
 
-# discretizing things 
-"""
-def try_smth(effort_increments=11): 
-    effortx = {}
-    data = {}
-    effort_increments = 11
-    for i in range(25):
-        for j in range(25):
-            for std in list(x/2 for x in range(-4, 5)):
-                temp_x = np.array([[i,j,std,0]]*effort_increments)
-                # does the y actually affect anything?
-                temp_y = np.ones(effort_increments)
-                effortx[i*25+j] = np.array([i/10 for i in range(effort_increments)])
-                data[i*25+j] = iware.predict(temp_x,temp_y,effortx[i*25+j])
-
-"""

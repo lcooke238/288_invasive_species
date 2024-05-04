@@ -5,12 +5,12 @@ Created on Oct 25, 2017
 '''
 
 import sys
-sys.path.insert(0, '/Users/catherinecui/288_personal/piecewise-master')
+sys.path.insert(0, 'piecewise-master')
 
 from gurobipy import *
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 plt.xticks(fontsize=6)

@@ -32,9 +32,9 @@ m = Model()
 count_patrols=1
 """
 class SinglePlanner(object):
-    def __init__(self, graph=None, days=15, T=20, method=None):
-        self.r = 25
-        self.c = 25
+    def __init__(self, graph=None, M=25, N=25, days=15, T=20, method=None):
+        self.r = M
+        self.c = N
         self.n = self.r * self.c
         self.r_s = self.r//2
         self.c_s = self.c//2
@@ -314,19 +314,14 @@ class SinglePlanner(object):
     # see Model.setPWLObj in the gorubi documentation
     # in our case, effortx will be list of x-values corresponding to discretization of effort
     # y value will be the predicted probability of catching the invasive species
-    def test(self):
-        import pickle
-        with open("effortx",'rb') as f:
-            effortx = pickle.load(f)
-        with open("data", 'rb') as f:
-            data = pickle.load(f)
+    def test(self, effortx, data):
         m = Model()
         x,f = self.genPatrolVars(m)
         m.update()
         obj = self.setObjectiveandSolve(m, data, effortx, x)
         solx1, solf1, obj = self.getSol(m,x,f)
-        print(solx1)
-        return solx1, solf1, obj
+        solx = [solx1[i]/300.0 for i in range(len(solx1))]
+        return solx
         #look at these outputs
         
     def runExperiments(self, g, file1, file2, file3=None, datafolder='./kai_data/test/GP_'):
@@ -397,7 +392,7 @@ class SinglePlanner(object):
 
 if __name__ == "__main__":
     planner = SinglePlanner()
-    planner.test()
+    # planner.test()
     
     """
     parser = argparse.ArgumentParser(description='Bagging Cross Validation Blackbox function')
