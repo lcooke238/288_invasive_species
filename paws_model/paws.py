@@ -24,7 +24,7 @@ NUM_TIMESTEPS = 10
 N = 25
 M = 25
 PTS_PER_SEC = 100
-LEN_TRAJ = 50 
+LEN_TRAJ = 5
 
 # verbose or not 
 VERBOSE = 0 
@@ -40,6 +40,14 @@ np.random.seed(seed = RANDOM_SEED)
 # calculates how prey_density, pred_density, and trap_density evolve over TIMESTEP time steps and returns the evolved prey_density, pred_density, and trap_density 
 def one_timestep(prey_density, pred_density, trap_density, timestep=TIMESTEP): 
     for idx in range(timestep): 
+        # predator and prey evolving 
+        y0 = np.dstack((prey_density, pred_density))
+        y0 = y0.flatten() 
+        sol = solve_ivp(synthetic_data.spatial_dynamics, y0=y0, t_span=[0, 1], t_eval=np.linspace(0, 1, PTS_PER_SEC), args=(N, M))
+        sol_use = sol.y.reshape((N, M, 2, int(PTS_PER_SEC)))
+        prey_density, pred_density = sol_use[:, :, 0, :], sol_use[:, :, 1, :]
+        prey_density, pred_density = prey_density[:, :, -1], pred_density[:, :, -1]
+
         # trap and predator evolving 
         y0 = np.dstack((pred_density, trap_density))
         y0 = y0.flatten() 
@@ -47,14 +55,6 @@ def one_timestep(prey_density, pred_density, trap_density, timestep=TIMESTEP):
         sol_use = sol.y.reshape((N, M, 2, int(PTS_PER_SEC)))
         pred_density, trap_density = sol_use[:, :, 0, :], sol_use[:, :, 1, :]
         pred_density, trap_density = pred_density[:, :, -1], trap_density[:, :, -1]
-
-        # predator and prey evolving 
-        y0 = np.dstack((prey_density, pred_density))
-        y0 = y0.flatten() 
-        sol = solve_ivp(synthetic_data.spatial_dynamics_traps, y0=y0, t_span=[0, 1], t_eval=np.linspace(0, 1, PTS_PER_SEC), args=(N, M))
-        sol_use = sol.y.reshape((N, M, 2, int(PTS_PER_SEC)))
-        prey_density, pred_density = sol_use[:, :, 0, :], sol_use[:, :, 1, :]
-        prey_density, pred_density = prey_density[:, :, -1], pred_density[:, :, -1]
     return prey_density, pred_density, trap_density 
 
 # calculates how prey_density, pred_density, and trap_density evolve over multiple runs of one_timestep, saving each result of one_timestep in np arrays 
@@ -62,11 +62,11 @@ def one_timestep(prey_density, pred_density, trap_density, timestep=TIMESTEP):
 def multiple_timesteps(prey_densities, pred_densities, trap_densities, new_trap_density, num_timesteps=NUM_TIMESTEPS):
     prey_density = prey_densities[:,:,-1]
     pred_density = pred_densities[:,:,-1]
-    trap_density = trap_densities[:,:,-1]
+    trap_density = new_trap_density #trap_densities[:,:,-1]
     for _ in range(num_timesteps): 
         prey_density, pred_density, _ = one_timestep(prey_density, pred_density, trap_density)
         # trap_density = np.random.binomial(1, 1/2, (N, M)) * 10 
-        trap_density = new_trap_density
+        #trap_density = new_trap_density
         prey_densities = np.dstack((prey_densities, prey_density))
         pred_densities = np.dstack((pred_densities, pred_density))
         trap_densities = np.dstack((trap_densities, trap_density))
@@ -75,7 +75,7 @@ def multiple_timesteps(prey_densities, pred_densities, trap_densities, new_trap_
 # final should be n x m x timestep 
 def data_generation(file1, file2, file3): 
     # generate original prey, predator, and trap density 
-    data_init = synthetic_data.generate(save_loc=None).reshape(N, M, 2, PTS_PER_SEC * LEN_TRAJ)
+    data_init = synthetic_data.generate(len_traj = LEN_TRAJ, save_loc=None).reshape(N, M, 2, PTS_PER_SEC * LEN_TRAJ)
     prey_density, pred_density = data_init[:, :, 0, -1], data_init[:, :, 1, -1]
     trap_density = np.random.binomial(1, 1/13, (N, M)) * 10 
     prey_densities, pred_densities, trap_densities = np.expand_dims(prey_density, axis=2), np.expand_dims(pred_density, axis=2), np.expand_dims(trap_density, axis=2)
@@ -291,7 +291,7 @@ class iWare:
 
         for i in range(self.num_classifiers): 
             if self.classifiers[i] is None: 
-                print("Classifier {} is None; skipping".format(i))
+                #print("Classifier {} is None; skipping".format(i))
                 continue 
             
             curr_predictions = self.classifiers[i].predict_proba(test_x)
@@ -380,7 +380,7 @@ def discretization(iware, effort_increments=11):
     effort_increments = 11
     for i in range(25):
         for j in range(25):
-            temp_x = np.array([[i,j,0]]*effort_increments)
+            temp_x = np.array([[i,j,5]]*effort_increments)
             # does the y actually affect anything?
             temp_y = np.ones(effort_increments)
             effortx[i*25+j] = np.array([i/10 for i in range(effort_increments)])

@@ -23,11 +23,11 @@ def spatial_dynamics(t, y, n, m):
         G - decay constant
     """
     # Spatial Lotka Volterra Model Parameters
-    D = np.array([0.2, 0.2])
-    R = np.array([0.5, 0.5])
+    D = np.array([0.1, 0.5])
+    R = np.array([0.5, 0.25])
     K = np.array([10, 10])
-    A = np.array([1.5, 1.5])
-    G = np.zeros(2)
+    A = np.array([5, -2])
+    G = np.array([0.1,0.1])
     delta = 1
     # Because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
@@ -39,8 +39,8 @@ def spatial_dynamics(t, y, n, m):
             # Contribution from diffusion
             # diffusion is estimated through finite differencing method
             # according to https://levelup.gitconnected.com/solving-2d-heat-equation-numerically-using-python-3334004aa01a
-            delta_t = (delta ** 2)/(4 * D)
-            diffusion = (D * delta_t) / (delta ** 2) * (y[k + 2:k + 4] + y[k - 2:k] + y[k + 2 * n:k + 2 * n + 2] + y[k - 2 * n:k - 2 * n + 2] - 4 * y[k:k + 2])
+            # delta_t = (delta ** 2)/(4 * D)
+            diffusion = D * (y[k + 2:k + 4] + y[k - 2:k] + y[k + 2 * n:k + 2 * n + 2] + y[k - 2 * n:k - 2 * n + 2] - 4 * y[k:k + 2])
             # Contribution from decay
             decay = G * y[k:k + 2]
 
@@ -131,10 +131,10 @@ def spatial_dynamics_traps(t, y, n, m):
         G - decay constant
     """
     # Spatial Lotka Volterra Model Parameters traps
-    D = np.array([0.2, 0.001])
-    R = np.array([0.5, 0])
-    K = np.array([10, 10])
-    A = np.array([1.5, 0])
+    D = np.array([.5, .01])
+    R = np.array([.25, 0])
+    K = np.array([10, 100])
+    A = np.array([10, 0])
     G = np.zeros(2)
     delta = 1
     
@@ -148,8 +148,8 @@ def spatial_dynamics_traps(t, y, n, m):
             # Contribution from diffusion
             # diffusion is estimated through finite differencing method
             # according to https://levelup.gitconnected.com/solving-2d-heat-equation-numerically-using-python-3334004aa01a
-            delta_t = (delta ** 2)/(4 * D)
-            diffusion = (D * delta_t) / (delta ** 2) * (y[k + 2:k + 4] + y[k - 2:k] + y[k + 2 * n:k + 2 * n + 2] + y[k - 2 * n:k - 2 * n + 2] - 4 * y[k:k + 2])
+            #delta_t = (delta ** 2)/(4 * D)
+            diffusion = D * (y[k + 2:k + 4] + y[k - 2:k] + y[k + 2 * n:k + 2 * n + 2] + y[k - 2 * n:k - 2 * n + 2] - 4 * y[k:k + 2])
             # Contribution from decay
             decay = G * y[k:k + 2]
 
