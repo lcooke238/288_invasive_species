@@ -23,16 +23,11 @@ def spatial_dynamics(t, y, n, m):
         G - decay constant
     """
     # Spatial Lotka Volterra Model Parameters
-    # D = np.array([0.2, 0.2])
-    # R = np.array([0.5, 0.5])
-    # K = np.array([10, 10])
-    # A = np.array([1.5, 1.5])
-    # G = np.zeros(2)
-    D = np.array([0.05, 0.3])
-    R = np.array([0.02, 0.15])
-    K = np.array([100, 20])
-    A = np.array([1, .01])
-    G = np.array([.02,.07])
+    D = np.array([0.2, 0.2])
+    R = np.array([0.5, 0.5])
+    K = np.array([10, 10])
+    A = np.array([1.5, 1.5])
+    G = np.zeros(2)
     delta = 1
     # Because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation
     # Instead of being an array with shape (n, m, 2), we can think of it as a flattened, 1d-array
@@ -136,16 +131,11 @@ def spatial_dynamics_traps(t, y, n, m):
         G - decay constant
     """
     # Spatial Lotka Volterra Model Parameters traps
-    # D = np.array([0.2, 0.001])
-    # R = np.array([0.5, 0])
-    # K = np.array([10, 10])
-    # A = np.array([1.5, 0])
-    # G = np.zeros(2)
-    D = np.array([0.3, 0.001])
-    R = np.array([0.15, 0])
-    K = np.array([20, 5])
-    A = np.array([.9, 0])
-    G = np.array([.07,0])
+    D = np.array([0.2, 0.001])
+    R = np.array([0.5, 0])
+    K = np.array([10, 10])
+    A = np.array([1.5, 0])
+    G = np.zeros(2)
     delta = 1
     
     # OK, so because scipy only works with 1d-arrays, we have to represent our 2d-space in a flattened, 1d representation

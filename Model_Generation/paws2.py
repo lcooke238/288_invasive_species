@@ -117,7 +117,7 @@ class iWare:
     def get_classifier(self, use_balanced): 
         base_estimator = self.get_base_estimator()
         if use_balanced:
-            return BalancedBaggingClassifier(base_estimator=base_estimator,
+            return BalancedBaggingClassifier(estimator=base_estimator,
                 n_estimators=NUM_ESTIMATORS, max_samples=MAX_SAMPLES,
                 max_features=MAX_FEATURES,
                 bootstrap=True, bootstrap_features=False,
@@ -128,7 +128,7 @@ class iWare:
 
         # non-balanced bagging classifier used for other datasets
         else:
-            return BaggingClassifier(base_estimator=base_estimator,
+            return BaggingClassifier(estimator=base_estimator,
                 n_estimators=NUM_ESTIMATORS, max_samples=MAX_SAMPLES,
                 max_features=MAX_FEATURES,
                 bootstrap=True, bootstrap_features=False,
@@ -338,9 +338,9 @@ def evaluate_results(test_y, predict_test_pos_probs):
 
 
 def run(): 
-    file1 = "/Users/catherinecui/288_invasive_species/Data/paws_preds.npy"
-    file2 = "/Users/catherinecui/288_invasive_species/Data/paws_traps.npy"
-    data_generation(file1, file2) 
+    file1 = "../Data/paws_preds.npy"
+    file2 = "../Data/paws_traps.npy"
+    # data_generation(file1, file2) 
 
     # shape is (M, N, NUM_TIMESTEPS)
     preds1, traps1 = np.load(file1), np.load(file2)

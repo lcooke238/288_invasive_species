@@ -21,6 +21,7 @@ DONE = False
 
 def LV(densities, traps): 
     # this function should return the density of the predator given that the initial density of the predator was densities and we placed traps 
+    pass
 
 def next_state(state, action): 
     traps, prev = state[0], state[1]
