@@ -7,8 +7,9 @@ import time
 import matplotlib.pyplot as plt 
 import synthetic_data
 from scipy.integrate import solve_ivp
+from collections import defaultdict
 
-RANDOM_SEED = 1111 
+RANDOM_SEED = 1112
 POSITIVE_LABEL = 1
 N_JOBS = 1 
 
@@ -18,23 +19,35 @@ MAX_SAMPLES = 0.8
 MAX_FEATURES = .5
 
 # parameters for data generation / L-V model 
-TIMESTEP = 5
-NUM_TIMESTEPS = 100
+TIMESTEP = 2
+NUM_TIMESTEPS = 10
 N = 25
 M = 25
 PTS_PER_SEC = 100
-LEN_TRAJ = 50 
+LEN_TRAJ = 5
 
 # verbose or not 
 VERBOSE = 0 
+
+DISCOUNT = 0.1
 
 # set a random seed 
 np.random.seed(seed = RANDOM_SEED)
 
 # -------------------- DATA GENERATION -----------------------------
 # takes in the original densities for the prey, predator, and traps 
-def one_timestep(prey_density, pred_density, trap_density): 
-    for idx in range(TIMESTEP): 
+
+# calculates how prey_density, pred_density, and trap_density evolve over TIMESTEP time steps and returns the evolved prey_density, pred_density, and trap_density 
+def one_timestep(prey_density, pred_density, trap_density, timestep=TIMESTEP): 
+    for idx in range(timestep): 
+        # predator and prey evolving 
+        y0 = np.dstack((prey_density, pred_density))
+        y0 = y0.flatten() 
+        sol = solve_ivp(synthetic_data.spatial_dynamics, y0=y0, t_span=[0, 1], t_eval=np.linspace(0, 1, PTS_PER_SEC), args=(N, M))
+        sol_use = sol.y.reshape((N, M, 2, int(PTS_PER_SEC)))
+        prey_density, pred_density = sol_use[:, :, 0, :], sol_use[:, :, 1, :]
+        prey_density, pred_density = prey_density[:, :, -1], pred_density[:, :, -1]
+
         # trap and predator evolving 
         y0 = np.dstack((pred_density, trap_density))
         y0 = y0.flatten() 
@@ -42,33 +55,36 @@ def one_timestep(prey_density, pred_density, trap_density):
         sol_use = sol.y.reshape((N, M, 2, int(PTS_PER_SEC)))
         pred_density, trap_density = sol_use[:, :, 0, :], sol_use[:, :, 1, :]
         pred_density, trap_density = pred_density[:, :, -1], trap_density[:, :, -1]
-
-        # predator and prey evolving 
-        y0 = np.dstack((prey_density, pred_density))
-        y0 = y0.flatten() 
-        sol = solve_ivp(synthetic_data.spatial_dynamics_traps, y0=y0, t_span=[0, 1], t_eval=np.linspace(0, 1, PTS_PER_SEC), args=(N, M))
-        sol_use = sol.y.reshape((N, M, 2, int(PTS_PER_SEC)))
-        prey_density, pred_density = sol_use[:, :, 0, :], sol_use[:, :, 1, :]
-        prey_density, pred_density = prey_density[:, :, -1], pred_density[:, :, -1]
     return prey_density, pred_density, trap_density 
 
+# calculates how prey_density, pred_density, and trap_density evolve over multiple runs of one_timestep, saving each result of one_timestep in np arrays 
+# note also that each tun of multiple_timesteps takes in a new trap placement array, given by milp/paws 
+def multiple_timesteps(prey_densities, pred_densities, trap_densities, new_trap_density, num_timesteps=NUM_TIMESTEPS):
+    prey_density = prey_densities[:,:,-1]
+    pred_density = pred_densities[:,:,-1]
+    trap_density = new_trap_density #trap_densities[:,:,-1]
+    for _ in range(num_timesteps): 
+        prey_density, pred_density, _ = one_timestep(prey_density, pred_density, trap_density)
+        # trap_density = np.random.binomial(1, 1/2, (N, M)) * 10 
+        #trap_density = new_trap_density
+        prey_densities = np.dstack((prey_densities, prey_density))
+        pred_densities = np.dstack((pred_densities, pred_density))
+        trap_densities = np.dstack((trap_densities, trap_density))
+    return prey_densities, pred_densities, trap_densities 
+
 # final should be n x m x timestep 
-def data_generation(file1, file2): 
+def data_generation(file1, file2, file3): 
     # generate original prey, predator, and trap density 
-    data_init = synthetic_data.generate().reshape(N, M, 2, PTS_PER_SEC * LEN_TRAJ)
+    data_init = synthetic_data.generate(len_traj = LEN_TRAJ, save_loc=None).reshape(N, M, 2, PTS_PER_SEC * LEN_TRAJ)
     prey_density, pred_density = data_init[:, :, 0, -1], data_init[:, :, 1, -1]
     trap_density = np.random.binomial(1, 1/13, (N, M)) * 10 
+    prey_densities, pred_densities, trap_densities = np.expand_dims(prey_density, axis=2), np.expand_dims(pred_density, axis=2), np.expand_dims(trap_density, axis=2)
+    prey_densities, pred_densities, trap_densities = multiple_timesteps(prey_densities, pred_densities, trap_densities, trap_density)
     # save a n x m x timestep array of predator and trap densities over NUM_TIMESTEPS
-    pred_densities = pred_density 
-    traps = trap_density
-    for _ in range(NUM_TIMESTEPS): 
-        prey_density, pred_density, _ = one_timestep(prey_density, pred_density, trap_density)
-        pred_densities = np.dstack((pred_densities, pred_density))
-        trap_density = np.random.binomial(1, 1/2, (N, M)) * 10 
-        traps = np.dstack((traps, trap_density))
     # save pred_densities and traps into file locations 
     np.save(file1, pred_densities)
-    np.save(file2, traps)
+    np.save(file2, trap_densities)
+    np.save(file3, prey_densities)
 
 # -------------------------- CREATE DATAFRAME -----------------------------
 # np_array is (num_trials, timestamps, grid_width, grid_height) array    
@@ -79,30 +95,47 @@ def data_generation(file1, file2):
 # probabilities 
 
 def create_dataframe(preds, traps):
-    num_parks, M, N, timesteps = preds.shape 
-    data_dict = {"Timestamps": [], "Label": [], "X": [], "Y": [], "Density": [], "Trap Effort": []}
-    for i in range(num_parks): 
-        park_preds, park_traps = preds[i], traps[i]
-        for time in range(timesteps): 
-            grid = park_preds[:, :, time]
-            for row in range(len(grid)): 
-                for col in range(len(grid[0])): 
-                    data_dict["Timestamps"].append(time) 
-                    if time > 0 and park_traps[row, col, time - 1] == 10: 
-                        data_dict["Label"].append(np.random.binomial(1, park_preds[row, col, time - 1]/10))
-                    else: 
-                        data_dict["Label"].append(0)
-                    # populate trap_effort 
-                    data_dict["Trap Effort"].append(park_traps[row, col][:time].sum() / (10 * (time + 1)))
-                    data_dict["X"].append(row)
-                    data_dict["Y"].append(col)
-                    data_dict["Density"].append(grid[row][col])
-    return pd.DataFrame(data_dict)
+    M, N, timesteps = preds.shape 
+    # dictionary: going from (x,  y) to (label, density, trap effort, previous success)
+    data_dict = defaultdict(list)
+    for time in range(timesteps): 
+        grid = preds[:, :, time]
+        for row in range(len(grid)): 
+            for col in range(len(grid[0])):
+                # set label, density, trap effort, and previous success
+                label = 0  
+                if time > 0 and traps[row, col, time - 1] == 10: 
+                    label = np.random.binomial(1, preds[row, col, time - 1]/10)
+                density = grid[row][col]
+                trap_effort = traps[row, col][:time].sum() / (10 * (time + 1))
+                prev_success, length = label, len(data_dict[(row, col)])
+                if time > 0: 
+                    prev_success += sum(np.array([data_dict[(row, col)][idx][3] for idx in range(length)]) * 0.1)
+                data_dict[(row, col)].append((label, density, trap_effort, prev_success))
+    df_dict = {"Timestamps": [], "Label": [], "X": [], "Y": [], "Density": [], "Trap Effort": [], "Previous Success": []}
+    for (row, col), values in data_dict.items(): 
+        for timestamp in range(len(values)):
+            label, density, trap_effort, prev_success = values[timestamp]
+            df_dict["Timestamps"].append(timestamp)
+            df_dict["Label"].append(label)
+            df_dict["X"].append(row)
+            df_dict["Y"].append(col)
+            df_dict["Density"].append(density)
+            df_dict["Trap Effort"].append(trap_effort)
+            df_dict["Previous Success"].append(prev_success)
+    # normalization
+    arr = np.array(df_dict["Previous Success"])
+    df_dict["Previous Success"] = (arr - np.mean(arr)) / np.std(arr)
+
+    return pd.DataFrame(df_dict)
 
 def setup_data(df): 
     labels, effort, timestamps = df.loc[:,"Label"].values, df.loc[:, "Trap Effort"].values, df.loc[:,"Timestamps"].values
-    df = df.drop(['Label', "Trap Effort", 'Timestamps'], axis=1)
+    df = df.drop(['Label', "Trap Effort", 'Timestamps', 'Density'], axis=1)
     features = df.values
+    # need to modify features
+    
+    # features now includes X, Y, and Previous Success
     return features, labels, effort, timestamps
 
 # ------------------------ iWare (PREDICTIVE MODEL) -------------------------------
@@ -122,7 +155,7 @@ class iWare:
     def get_classifier(self, use_balanced): 
         base_estimator = self.get_base_estimator()
         if use_balanced:
-            return BalancedBaggingClassifier(estimator=base_estimator,
+            return BalancedBaggingClassifier(base_estimator=base_estimator,
                 n_estimators=NUM_ESTIMATORS, max_samples=MAX_SAMPLES,
                 max_features=MAX_FEATURES,
                 bootstrap=True, bootstrap_features=False,
@@ -133,7 +166,7 @@ class iWare:
 
         # non-balanced bagging classifier used for other datasets
         else:
-            return BaggingClassifier(estimator=base_estimator,
+            return BaggingClassifier(base_estimator=base_estimator,
                 n_estimators=NUM_ESTIMATORS, max_samples=MAX_SAMPLES,
                 max_features=MAX_FEATURES,
                 bootstrap=True, bootstrap_features=False,
@@ -258,7 +291,7 @@ class iWare:
 
         for i in range(self.num_classifiers): 
             if self.classifiers[i] is None: 
-                print("Classifier {} is None; skipping".format(i))
+                #print("Classifier {} is None; skipping".format(i))
                 continue 
             
             curr_predictions = self.classifiers[i].predict_proba(test_x)
@@ -341,25 +374,16 @@ def evaluate_results(test_y, predict_test_pos_probs):
 
     return '\n'.join(output)
 
+def discretization(iware, effort_increments=11): 
+    effortx = {}
+    data = {}
+    effort_increments = 11
+    for i in range(25):
+        for j in range(25):
+            temp_x = np.array([[i,j,5]]*effort_increments)
+            # does the y actually affect anything?
+            temp_y = np.ones(effort_increments)
+            effortx[i*25+j] = np.array([i/10 for i in range(effort_increments)])
+            data[i*25+j] = iware.predict(temp_x,temp_y,effortx[i*25+j])
+    return effortx, data
 
-def run(): 
-    file1 = "../Data/paws_preds.npy"
-    file2 = "../Data/paws_traps.npy"
-    # data_generation(file1, file2) 
-
-    # shape is (M, N, NUM_TIMESTEPS)
-    preds1, traps1 = np.load(file1), np.load(file2)
-    preds1 = np.expand_dims(preds1, axis=0)
-    traps1 = np.expand_dims(traps1, axis=0)
-    df = create_dataframe(preds1, traps1)
-    
-    features, labels, effort, timestamps = setup_data(df)
-    iware = iWare()
-    train_x, test_x, train_y, test_y, train_effort, test_effort = iware.train_test_split_by_year(features, labels, effort, timestamps, 90)
-    iware.train_iware(train_x, train_y, train_effort)
-
-    predictions = iware.predict(test_x, test_y, test_effort)
-    output = evaluate_results(test_y, predictions)
-    print(output)
-
-run()

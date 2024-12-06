@@ -148,7 +148,7 @@ class iWare:
 
         return classifiers
 
-     # given a set of trained classifiers, compute optimal weights
+    # given a set of trained classifiers, compute optimal weights
     def get_classifier_weights(self, classifiers, reserve_x, reserve_y):
         # test classifiers on all data points
         predictions = []
